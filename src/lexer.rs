@@ -14,8 +14,8 @@ impl<'a> Lexer<'a> {
     }
 
     fn chop_while<P>(&mut self, mut predicate: P) -> &'a str
-        where
-            P: FnMut(char) -> bool,
+    where
+        P: FnMut(char) -> bool,
     {
         let n = self.content.chars().take_while(|&c| predicate(c)).count();
         self.chop(n)
@@ -29,13 +29,10 @@ impl<'a> Lexer<'a> {
         }
 
         if self.content.starts_with(char::is_numeric) {
-            let token = self.chop_while(char::is_numeric)
-                .to_string();
+            let token = self.chop_while(char::is_numeric).to_string();
             Some(token)
         } else if self.content.chars().next().unwrap().is_alphabetic() {
-            let term = self
-                .chop_while(char::is_alphanumeric)
-                .to_lowercase();
+            let term = self.chop_while(char::is_alphanumeric).to_lowercase();
             Some(term)
         } else {
             Some(self.chop(1).to_string())
