@@ -1,6 +1,10 @@
 use std::fs;
 use tl;
 
+mod lexer;
+
+use lexer::Lexer;
+
 fn extract_html_text(file_path: &str) -> String {
     let file_content = fs::read_to_string(file_path)
         .expect("File not found");
@@ -21,5 +25,9 @@ fn main() {
 
     let text = extract_html_text(file_path);
 
-    println!("With text:\n{text}");
+    let lexer = Lexer::new(&text);
+
+    for token in lexer {
+        println!("token: {token}");
+    }
 }
