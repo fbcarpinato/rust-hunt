@@ -1,33 +1,24 @@
-use std::fs;
-use tl;
-
+mod directory_scanner;
 mod lexer;
+mod html_extractor;
+
+
+use std::path::Path;
 
 use lexer::Lexer;
-
-fn extract_html_text(file_path: &str) -> String {
-    let file_content = fs::read_to_string(file_path).expect("File not found");
-
-    let dom = tl::parse(&file_content, tl::ParserOptions::default()).unwrap();
-    let parser = dom.parser();
-
-    let handle = dom
-        .query_selector("html")
-        .and_then(|mut iter| iter.next())
-        .unwrap();
-    let node = handle.get(dom.parser()).unwrap();
-
-    return node.inner_text(parser).to_string();
-}
+use directory_scanner::scan_directory_recursive;
+use html_extractor::extract_html_text;
 
 fn main() {
-    let file_path: &str = "./examples/html/example1.html";
+    let root_directory_path = "./examples/html";
 
-    let text = extract_html_text(file_path);
+    let callback = |file_path: &Path| {
+        println!("Processing file: {:?}", file_path.display());
 
-    let lexer = Lexer::new(&text);
+        let text = extract_html_text(&file_path.to_str().unwrap().to_owned());
+        let lexer = Lexer::new(&text);
+        println!("Tokens: {:?}", lexer.count());
+    };
 
-    for token in lexer {
-        println!("token: {token}");
-    }
+    scan_directory_recursive(root_directory_path, &callback);
 }
