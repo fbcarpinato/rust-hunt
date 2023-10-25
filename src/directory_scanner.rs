@@ -1,9 +1,9 @@
 use std::fs;
 use std::path::Path;
 
-pub fn scan_directory_recursive<F>(directory_path: &str, callback: &F)
+pub fn scan_directory_recursive<F>(directory_path: &str, callback: &mut F)
 where
-    F: Fn(&Path),
+    F: FnMut(&Path),
 {
     if let Ok(entries) = fs::read_dir(directory_path) {
         for entry in entries {
