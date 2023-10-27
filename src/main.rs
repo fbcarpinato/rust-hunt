@@ -4,11 +4,34 @@ mod lexer;
 mod tfidf_calculator;
 
 use std::collections::HashMap;
+use std::io;
 use std::path::Path;
 
 use directory_scanner::scan_directory_recursive;
 use html_extractor::extract_html_text;
 use tfidf_calculator::calculate_tfidf;
+
+fn find_best_matching_results(
+    tfidf_scores: &HashMap<String, HashMap<String, f64>>,
+    query: &str,
+    top_results: usize,
+) {
+    let query = query.to_lowercase();
+
+    for (doc_id, tf) in tfidf_scores.iter() {
+        let mut matching_terms: Vec<(&String, &f64)> = tf
+            .iter()
+            .filter(|(term, _)| term.to_lowercase().contains(&query))
+            .collect();
+        matching_terms.sort_by(|a, b| b.1.partial_cmp(a.1).unwrap());
+
+        println!("Best matching results for Document {} with query '{}':", doc_id, query);
+
+        for (term, score) in matching_terms.iter().take(top_results) {
+            println!("Term: {} has a TF-IDF Score of {}", term, score);
+        }
+    }
+}
 
 fn find_most_frequent_terms(
     tfidf_scores: &HashMap<String, HashMap<String, f64>>,
@@ -48,17 +71,15 @@ fn main() {
 
     let tfidf_scores = calculate_tfidf(&texts);
 
-    for (doc_id, tf) in tfidf_scores.iter() {
-        println!("Document: {}", doc_id);
-        for (term, score) in tf.iter() {
-            println!("Term: {} has a TF-IDF Score of {}", term, score);
-        }
-    }
+    let mut query: String = String::new();
+    println!("Enter a query string: ");
+    io::stdin().read_line(&mut query).expect("Failed to read input");
+    query = query.trim().to_string();
 
-    let most_frequent_terms = find_most_frequent_terms(&tfidf_scores);
+    let mut top_results = String::new();
+    println!("Enter the number of top matching results to display: ");
+    io::stdin().read_line(&mut top_results).expect("Failed to read input");
+    let top_results = top_results.trim().parse::<usize>().unwrap_or(10);
 
-    for (doc_id, terms) in most_frequent_terms.iter() {
-        println!("Document: {}", doc_id);
-        println!("{}", terms);
-    }
+    find_best_matching_results(&tfidf_scores, &query, top_results);
 }
